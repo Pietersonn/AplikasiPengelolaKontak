@@ -2,16 +2,100 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
-package com.mycompany.latihan3;
+package aplikasipengelolakontak;
 
-
+import javax.swing.JOptionPane;
+import java.sql.SQLException;
+import java.util.List;
+import javax.swing.table.DefaultTableModel;
 
 public class KontakForm extends javax.swing.JFrame {
 
     public KontakForm() {
         initComponents();
-       
-  
+        initTable();
+        loadContacts();
+        setVisible(true);
+
+        jTextField1.addFocusListener(new java.awt.event.FocusAdapter() {
+            private boolean firstClick = true; 
+
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                if (firstClick) {
+                    jTextField1.setText("");  
+                    firstClick = true;  
+                }
+            }
+        });
+
+        jTextField2.addFocusListener(new java.awt.event.FocusAdapter() {
+            private boolean firstClick = true;  
+
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                if (firstClick) {
+                    jTextField2.setText(""); 
+                    firstClick = true;  
+                }
+            }
+            
+        });
+
+        jTextField2.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                char c = evt.getKeyChar();
+
+                // Cek apakah karakter yang ditekan bukan angka (0-9) dan bukan tombol backspace atau delete
+                if (!Character.isDigit(c)) {
+                    evt.consume(); // Mengabaikan input jika bukan angka
+                }
+
+                // Membatasi panjang input antara 11 hingga 13 karakter
+                if (jTextField2.getText().length() >= 13) {
+                    evt.consume(); // Mengabaikan input jika panjang sudah 13 karakter
+                }
+            }
+        });
+    }
+
+    private void initTable() {
+        String[] columnNames = {"ID", "Nama", "Nomor Telepon", "Kategori"};
+        DefaultTableModel model = new DefaultTableModel(columnNames, 0);
+        jTable1.setModel(model);
+
+        jTable1.getColumnModel().getColumn(0).setPreferredWidth(20);
+        jTable1.getColumnModel().getColumn(1).setPreferredWidth(150);
+        jTable1.getColumnModel().getColumn(2).setPreferredWidth(150);
+        jTable1.getColumnModel().getColumn(3).setPreferredWidth(100);
+    }
+
+    private void loadContacts() {
+        try {
+            List<Contact> contacts = ContactDAO.getAllContacts();
+            updateTable(contacts);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat kontak: " + e.getMessage());
+        }
+    }
+
+    private void updateTable(List<Contact> contacts) {
+        String[] columnNames = {"ID", "Nama", "Nomor Telepon", "Kategori"};
+        DefaultTableModel model = new DefaultTableModel(columnNames, 0);
+
+        for (Contact contact : contacts) {
+            Object[] row = {
+                contact.getId(),
+                contact.getNama(),
+                contact.getNomorTelepon(),
+                contact.getKategori()
+            };
+            model.addRow(row);
+        }
+
+        jTable1.setModel(model);
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -244,28 +328,124 @@ public class KontakForm extends javax.swing.JFrame {
     }//GEN-LAST:event_jComboBox1ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-    
+        String nama = jTextField1.getText();
+        String nomorTelepon = jTextField2.getText();
+        String kategori = (String) jComboBox1.getSelectedItem();
+
+        // Validasi input
+        if (nama.isEmpty() || nomorTelepon.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nama dan nomor telepon harus diisi!");
+            return;
+        }
+
+        if (nomorTelepon.length() < 11 || nomorTelepon.length() > 13) {
+            JOptionPane.showMessageDialog(this, "Nomor telepon harus antara 11 hingga 13 digit.");
+            return;
+        }
+
+        if ("Pilih Kategori".equals(kategori)) {
+            JOptionPane.showMessageDialog(this, "Kategori harus dipilih!");
+            return;
+        }
+
+        // Buat objek kontak baru
+        Contact contact = new Contact(nama, nomorTelepon, kategori);
+
+        // Simpan kontak ke database melalui ContactDAO
+        try {
+            ContactDAO.addContact(contact);
+            JOptionPane.showMessageDialog(this, "Kontak berhasil ditambahkan!");
+            loadContacts();  // Refresh daftar kontak
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal menambahkan kontak: " + e.getMessage());
+        }
 
 
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-       
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow != -1) {
+            String name = jTextField1.getText();
+            String phoneNumber = jTextField2.getText();
+            String category = (String) jComboBox1.getSelectedItem();
+            int id = (int) jTable1.getValueAt(selectedRow, 0);
+
+            // Validasi input
+            if (name.isEmpty() || phoneNumber.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Nama dan Nomor Telepon tidak boleh kosong.");
+                return;
+            }
+
+            if (phoneNumber.length() < 11 || phoneNumber.length() > 13) {
+                JOptionPane.showMessageDialog(this, "Nomor telepon harus antara 11 hingga 13 digit.");
+                return;
+            }
+
+            if ("Pilih Kategori".equals(category)) {
+                JOptionPane.showMessageDialog(this, "Kategori harus dipilih!");
+                return;
+            }
+
+            Contact updatedContact = new Contact(id, name, phoneNumber, category);
+            try {
+                ContactDAO.updateContact(updatedContact, id);
+                JOptionPane.showMessageDialog(this, "Kontak berhasil diperbarui.");
+                loadContacts();
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Gagal memperbarui kontak: " + e.getMessage());
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Pilih kontak yang akan diperbarui.");
+        }
 
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-    
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow != -1) {
+            int id = (int) jTable1.getValueAt(selectedRow, 0);
+            try {
+                ContactDAO.deleteContact(id);
+                JOptionPane.showMessageDialog(this, "Kontak berhasil dihapus.");
+                loadContacts();
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Gagal menghapus kontak: " + e.getMessage());
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Pilih kontak yang akan dihapus.");
+        }
 
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        
+        String nama = jTextField1.getText();  // Text field untuk pencarian nama
+        String nomorTelepon = jTextField2.getText();  // Text field untuk nomor telepon
+        String kategori = (String) jComboBox1.getSelectedItem();  // ComboBox untuk kategori
+
+        try {
+            // Pencarian dengan nama, nomor telepon, dan kategori
+            List<Contact> searchResults = ContactDAO.searchContacts(nama, nomorTelepon, kategori);
+            updateTable(searchResults);  // Method untuk memperbarui tampilan tabel dengan hasil pencarian
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal mencari kontak: " + e.getMessage());
+        }
 
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
-        
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow != -1) {
+            // Mendapatkan data dari kolom yang sesuai
+            String name = (String) jTable1.getValueAt(selectedRow, 1); // Misalnya kolom 1 adalah nama
+            String phoneNumber = (String) jTable1.getValueAt(selectedRow, 2); // Kolom 2 adalah nomor telepon
+            String category = (String) jTable1.getValueAt(selectedRow, 3); // Kolom 3 adalah kategori
+
+            // Menampilkan data di input field
+            jTextField1.setText(name);
+            jTextField2.setText(phoneNumber);
+            jComboBox1.setSelectedItem(category);
+        }
     }//GEN-LAST:event_jTable1MouseClicked
 
     /**
