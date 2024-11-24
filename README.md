@@ -1,2 +1,8 @@
 # AplikasiPengelolaKontak
- Latihan3-Muhammad Akmal (2210010437)
+
+# DEMO
+![Demo Aplikasi](Demo.gif)
+![Demo Aplikasi](Demo2.gif)
+
+# Pembuat Aplikasi
+ Muhammad Akmal ( 2210010437 ) 
