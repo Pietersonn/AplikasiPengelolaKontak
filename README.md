@@ -6,8 +6,7 @@ Aplikasi Pengelolaan Kontak adalah sebuah aplikasi berbasis Java yang memungkink
 
 ## Keunggulan Aplikasi
 
-- **Antarmuka User-Friendly:** Desain intuitif menggunakan Java Swing, memudahkan navigasi dan penggunaan.  
-- **Basis Data Terpusat:** Menggunakan MySQL untuk penyimpanan data kontak secara efisien.  
+- **Antarmuka User-Friendly:** Desain intuitif menggunakan Java Swing, memudahkan navigasi dan penggunaan.    
 - **Validasi Data:** Menjamin integritas data dengan validasi input, termasuk nomor telepon.  
 - **Pencarian Fleksibel:** Cari kontak berdasarkan nama, nomor telepon, atau kategori.  
 - **Pengelompokan Kontak:** Kategorisasi kontak seperti Keluarga, Teman, dan Rekan Kerja.  
