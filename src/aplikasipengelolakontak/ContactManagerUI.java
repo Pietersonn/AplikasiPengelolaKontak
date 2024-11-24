@@ -8,9 +8,16 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 
 public class ContactManagerUI extends JFrame {
 
@@ -128,6 +135,56 @@ public class ContactManagerUI extends JFrame {
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Gagal mencari kontak: " + e.getMessage());
         }
+    }
+
+    private void saveToCSV() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Simpan Kontak sebagai CSV");
+
+        int userSelection = fileChooser.showSaveDialog(this);
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            File csvFile = fileChooser.getSelectedFile();
+
+            // Cek apakah file sudah ada
+            if (csvFile.exists()) {
+                int response = JOptionPane.showConfirmDialog(this,
+                        "File sudah ada. Apakah Anda ingin menimpa file tersebut?",
+                        "Konfirmasi", JOptionPane.YES_NO_OPTION);
+
+                if (response != JOptionPane.YES_OPTION) {
+                    return;
+                }
+            }
+
+            try (FileWriter writer = new FileWriter(csvFile)) {
+                List<Contact> contacts = ContactDAO.getAllContacts();
+                writer.write("Nama,Nomor Telepon,Kategori\n");
+                for (Contact contact : contacts) {
+                    writer.write(contact.getNama() + "," + contact.getNomorTelepon() + "," + contact.getKategori() + "\n");
+                }
+                JOptionPane.showMessageDialog(this, "Kontak berhasil disimpan ke " + csvFile.getAbsolutePath());
+            } catch (IOException | SQLException e) {
+                JOptionPane.showMessageDialog(this, "Terjadi kesalahan saat menyimpan kontak: " + e.getMessage());
+            }
+        }
+    }
+
+    private List<Contact> readContactsFromCSV(File csvFile) throws IOException {
+        List<Contact> contacts = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(csvFile))) {
+            String line;
+            reader.readLine(); // Lewati baris header
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length == 3) {
+                    String nama = parts[0];
+                    String nomorTelepon = parts[1];
+                    String kategori = parts[2];
+                    contacts.add(new Contact(nama, nomorTelepon, kategori));
+                }
+            }
+        }
+        return contacts;
     }
 
     public static void main(String[] args) {
