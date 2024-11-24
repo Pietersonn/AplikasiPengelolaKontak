@@ -47,7 +47,8 @@ Aplikasi ini menawarkan beberapa fitur utama:
 
 - **KontakForm.java:** Implementasi GUI dan penanganan event.  
 - **Contact.java:** Model class untuk data kontak (id, nama, nomor telepon, kategori).  
-- **ContactDAO.java:** Data Access Object untuk operasi CRUD dan koneksi database.  
+- **ContactDAO.java:** Data Access Object untuk operasi CRUD dan koneksi database.
+- **DatabaseConnection.java:** Class untuk koneksi ke database.
 
 
 # DEMO
